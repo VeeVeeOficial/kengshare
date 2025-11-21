@@ -667,15 +667,21 @@
     return res.json();
   }
   async function apiPost(action, data) {
-    const url = new URL(API_BASE_URL);
-    url.searchParams.set('action', action);
-    const res = await fetch(url.toString(), {
-      method:'POST',
-      headers:{'Content-Type':''text/plain'},
-      body: JSON.stringify(data)
-    });
-    return res.json();
-  }
+  const url = new URL(API_BASE_URL);
+  url.searchParams.set('action', action);
+
+  // ส่งแบบ form-encoded เพื่อให้เป็น simple request (ไม่โดน preflight CORS)
+  const body = new URLSearchParams();
+  body.set('payload', JSON.stringify(data));
+
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    body // ไม่ต้องใส่ headers เลย เดี๋ยว browser ตั้งให้เอง
+  });
+
+  return res.json();
+}
+
  
   function money(n) {
     const num = Number(n || 0);
