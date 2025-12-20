@@ -665,16 +665,23 @@
     const res = await fetch(url.toString());
     return res.json();
   }
+  
+  // *** แก้ไขตรงนี้ - ใช้ FormData แทน JSON เพื่อหลีกเลี่ยง CORS ***
   async function apiPost(action, data) {
     const url = new URL(API_BASE_URL);
     url.searchParams.set('action', action);
+    
+    // ใช้ FormData แทน JSON เพื่อหลีกเลี่ยง CORS issues กับ Google Apps Script
+    const formData = new FormData();
+    formData.append('payload', JSON.stringify(data));
+    
     const res = await fetch(url.toString(), {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(data)
+      method: 'POST',
+      body: formData
     });
     return res.json();
   }
+  
   function money(n) {
     const num = Number(n || 0);
     if (isNaN(num)) return '-';
@@ -801,13 +808,16 @@
     const msg = document.getElementById('msg-inv');
     msg.textContent = 'กำลังบันทึก...';
     try {
+      console.log('Sending payload:', payload);
       const res = await apiPost('createItem', payload);
+      console.log('Response:', res);
       if (!res.ok) throw new Error(res.error || 'error');
       msg.textContent = 'บันทึกสำเร็จ';
       setTimeout(()=>msg.textContent='',2000);
       await loadInventory();
       await loadDashboard();
     } catch (err) {
+      console.error('Full error:', err);
       msg.textContent = 'Error: '+err.message;
     }
   }
